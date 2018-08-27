@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="card_margin">5dp</dimen>
+    <dimen name="card_album_radius">0dp</dimen>
+    <dimen name="movie_thumbnail_height">160dp</dimen>
+    <dimen name="movie_text_padding">8dp</dimen>
+    <dimen name="movie_title_card_item">15sp</dimen>
+    <dimen name="md_keylines">16dp</dimen>
+    <dimen name="movie_titles">20sp</dimen>
+    <dimen name="movie_sub_title">18sp</dimen>
+</resources>
