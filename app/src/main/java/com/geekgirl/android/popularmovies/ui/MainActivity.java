@@ -1,18 +1,14 @@
 package com.geekgirl.android.popularmovies.ui;
 
-import android.content.Context;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.LoaderManager;
-import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -22,11 +18,12 @@ import android.widget.TextView;
 
 import com.geekgirl.android.popularmovies.R;
 import com.geekgirl.android.popularmovies.model.Movie;
+import com.geekgirl.android.popularmovies.utils.Constants;
+import com.geekgirl.android.popularmovies.utils.MoviesAsyncTaskLoader;
 import com.geekgirl.android.popularmovies.utils.NetworkUtils;
 import com.geekgirl.android.popularmovies.utils.Prefs;
 import com.geekgirl.android.popularmovies.utils.UITools;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +33,6 @@ import butterknife.ButterKnife;
 
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<Movie>>, MoviesAdapter.OnMovieClickListener {
 
-    private static final String QUERY_URL_EXTRA = "query_url_extra";
 
     private static final int MOVIES_QUERY_LOADER = 25;
 
@@ -91,7 +87,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private void makeMoviesQuery() {
         mQueryUrl = NetworkUtils.getUrlQuery(this);
         Bundle queryBundle = new Bundle();
-        queryBundle.putString(QUERY_URL_EXTRA, mQueryUrl.toString());
+        queryBundle.putString(Constants.QUERY_URL_EXTRA, mQueryUrl.toString());
 
         LoaderManager loaderManager = getSupportLoaderManager();
         Loader<List<Movie>> queryLoader = loaderManager.getLoader(MOVIES_QUERY_LOADER);
@@ -168,59 +164,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         Movie movie = mMovieList.get(position);
         if (movie != null) {
             goToMovieDetailFragment(movie);
-        }
-    }
-
-    public static class MoviesAsyncTaskLoader extends AsyncTaskLoader<List<Movie>> {
-
-        Bundle args;
-        List<Movie> movieArrayList;
-
-
-        public MoviesAsyncTaskLoader(Context context, Bundle args) {
-            super(context);
-            this.args = args;
-        }
-
-        @Override
-        protected void onStartLoading() {
-            if (args == null) {
-                return;
-            }
-
-            if (movieArrayList != null) {
-                deliverResult(movieArrayList);
-            } else {
-                forceLoad();
-            }
-
-        }
-
-        @Nullable
-        @Override
-        public List<Movie> loadInBackground() {
-
-            String queryUrlString = args.getString(QUERY_URL_EXTRA);
-
-            if (queryUrlString == null || TextUtils.isEmpty(queryUrlString)) {
-                return null;
-            }
-
-            try {
-                URL movieQueryUrl = new URL(queryUrlString);
-                String movieQueryResult = NetworkUtils.getResponseFromHttpUrl(movieQueryUrl);
-                return NetworkUtils.parseMoviesData(movieQueryResult);
-            } catch (IOException e) {
-                e.printStackTrace();
-                return null;
-            }
-        }
-
-
-        @Override
-        public void deliverResult(List<Movie> data) {
-            movieArrayList = data;
-            super.deliverResult(data);
         }
     }
 

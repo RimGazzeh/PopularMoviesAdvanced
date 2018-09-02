@@ -8,6 +8,7 @@ import android.net.Uri;
 import com.geekgirl.android.popularmovies.model.Movie;
 import com.geekgirl.android.popularmovies.model.MoviesData;
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -78,8 +79,14 @@ public class NetworkUtils {
 
     public static List<Movie> parseMoviesData(String data) {
         Gson gson = new Gson();
-        MoviesData moviesData = gson.fromJson(data, MoviesData.class);
-        return moviesData.getMovies();
+        try {
+            MoviesData moviesData = gson.fromJson(data, MoviesData.class);
+            return moviesData.getMovies();
+        }catch (JsonSyntaxException e){
+            Logger.e(e.getMessage());
+            return null;
+        }
+
     }
 
 
