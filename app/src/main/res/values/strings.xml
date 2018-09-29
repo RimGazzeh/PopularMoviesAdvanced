@@ -1,9 +1,13 @@
 <resources>
     <string name="app_name">Popular Movies</string>
     <string name="movie_synopsis">Synopsis :</string>
+    <string name="movie_videos">Videos :</string>
+    <string name="movie_reviews">Review :</string>
     <string name="no_network_connection">Oops!! no Network connection</string>
-    <string name="error_message">Failed to get results. Please try again.</string>
-    <string name="most_popular_option_menu">Most popular</string>
+    <string name="error_message">No data to display. Please try again.</string>
+    <string name="most_popular_option_menu">Popular</string>
     <string name="top_rated_option_menu">Top rated</string>
+    <string name="favorites_option_menu">Favorites</string>
+    <string name="more_details">Open Link</string>
 
 </resources>

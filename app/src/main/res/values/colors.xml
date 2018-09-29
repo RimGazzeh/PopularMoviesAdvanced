@@ -1,13 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#FF4081</color>
-    <color name="album_title">#4c4c4c</color>
+    <color name="colorPrimary">#37474F</color>
+    <color name="colorPrimaryDark">#263238</color>
+    <color name="colorAccent">#FF6859</color>
+    <color name="colorBlue">#72DEFF</color>
+    <color name="colorGreen">#26e49e</color>
+    <color name="album_title">#fffefe</color>
+    <color name="black_transparent">#73000000</color>
+    <color name="black_background">#303030</color>
 
     <style name="RatingBar" parent="Theme.AppCompat">
         <item name="colorControlNormal">#757575</item>
-        <item name="colorControlActivated">#ffc400</item>
+        <item name="colorControlActivated">#FFCF44</item>
     </style>
 
 

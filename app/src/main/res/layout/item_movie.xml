@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    >
+
+    <data>
+        <variable
+            name="movie"
+            type="com.geekgirl.android.popularmovies.model.IMovie"/>
+    </data>
+
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <android.support.v7.widget.CardView
+        android:id="@+id/movie_item_card_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_margin="@dimen/card_margin">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_gravity="center"
+            android:layout_height="wrap_content">
+
+            <com.geekgirl.android.popularmovies.ui.widget.PicassoImageView
+                android:id="@+id/movie_item_thumbnail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:Url="@{movie.posterCompletePath}"/>
+
+
+            <RelativeLayout
+                android:id="@+id/movie_item_title_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@id/movie_item_thumbnail"
+                android:background="@color/black_transparent"
+                android:padding="@dimen/movie_text_padding">
+
+                <TextView
+                    android:id="@+id/movie_item_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_marginEnd="@dimen/movie_text_padding"
+                    android:text="@{movie.title}"
+                    android:layout_toStartOf="@+id/movie_item_like"
+                    android:textColor="@color/album_title"
+                    android:textSize="@dimen/movie_title_card_item" />
+
+                <ImageView
+                    android:id="@+id/movie_item_like"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:scaleType="centerCrop"
+                    android:src="@{safeUnbox(movie.favorite) ? @drawable/ic_favorite_enable : @drawable/ic_favorite_disabled}" />
+
+            </RelativeLayout>
+
+
+        </RelativeLayout>
+
+    </android.support.v7.widget.CardView>
+
+</LinearLayout></layout>

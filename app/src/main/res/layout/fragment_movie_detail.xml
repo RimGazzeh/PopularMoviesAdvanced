@@ -1,108 +1,154 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/detail_content"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@android:color/white"
-    android:orientation="vertical">
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <ImageView
-        android:id="@+id/movie_thumbnail"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:fitsSystemWindows="true"
-        android:scaleType="centerCrop" />
+    <data>
+
+        <variable
+            name="movie"
+            type="com.geekgirl.android.popularmovies.model.IMovie" />
+    </data>
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@color/black_background"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <LinearLayout
+    <LinearLayout
+        android:id="@+id/detail_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <com.geekgirl.android.popularmovies.ui.widget.PicassoImageView
+            android:id="@+id/movie_thumbnail"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingLeft="@dimen/md_keylines"
-            android:paddingRight="@dimen/md_keylines"
-            android:paddingTop="@dimen/md_keylines">
-
-            <TextView
-                android:id="@+id/movie_title"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/md_keylines"
-                android:textColor="?attr/colorAccent"
-                android:textSize="@dimen/movie_titles" />
-
+            android:layout_height="200dp"
+            android:fitsSystemWindows="true"
+            android:scaleType="centerCrop"
+            app:Url="@{movie.posterCompletePath}" />
 
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/md_keylines"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:srcCompat="@drawable/ic_calendar" />
+                android:orientation="vertical"
+                android:paddingLeft="@dimen/md_keylines"
+                android:paddingTop="@dimen/md_keylines"
+                android:paddingBottom="@dimen/md_keylines"
+                android:paddingRight="@dimen/md_keylines">
 
                 <TextView
-                    android:id="@+id/movie_release_date"
+                    android:id="@+id/movie_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/md_keylines"
+                    android:text="@{movie.title}"
+                    android:textColor="?attr/colorAccent"
+                    android:textSize="@dimen/movie_titles" />
+
+
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/md_keylines"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:srcCompat="@drawable/ic_calendar" />
+
+                    <TextView
+                        android:id="@+id/movie_release_date"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:paddingStart="10dp"
+                        android:text="@{movie.releaseDate}"
+                        android:textSize="14sp"
+                        tools:text="2016-03-23" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
                     android:layout_gravity="center_vertical"
-                    android:paddingStart="10dp"
-                    android:textColor="@color/secondaryText"
-                    android:textSize="14sp"
-                    tools:text="2016-03-23" />
+                    android:layout_marginBottom="@dimen/md_keylines"
+                    android:layout_weight="1"
+                    android:orientation="horizontal">
 
-            </LinearLayout>
+                    <RatingBar
+                        android:id="@+id/movie_ratingBar"
+                        style="?android:attr/ratingBarStyleSmall"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:hapticFeedbackEnabled="false"
+                        android:numStars="10"
+                        android:rating="5"
+                        android:theme="@style/RatingBar" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_gravity="center_vertical"
-                android:layout_marginBottom="@dimen/md_keylines"
-                android:layout_weight="1"
-                android:orientation="horizontal">
+                    <TextView
+                        android:id="@+id/movie_rating"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:text="@{Double.toString(safeUnbox(movie.voteAverage))}"
+                        android:textSize="14sp" />
 
-                <RatingBar
-                    android:id="@+id/movie_ratingBar"
-                    style="?android:attr/ratingBarStyleSmall"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:hapticFeedbackEnabled="false"
-                    android:numStars="10"
-                    android:rating="5"
-                    android:theme="@style/RatingBar" />
+                </LinearLayout>
+
 
                 <TextView
-                    android:id="@+id/movie_rating"
+                    android:id="@+id/synopsis_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/movie_text_padding"
+                    android:text="@string/movie_synopsis"
+                    android:textColor="@color/colorAccent"
+                    android:textSize="@dimen/movie_sub_title" />
+
+                <TextView
+                    android:id="@+id/movie_synopsis"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="10dp"
-                    android:textColor="@color/secondaryText"
-                    android:textSize="14sp"
-                    tools:text="8" />
+                    android:layout_marginBottom="@dimen/md_keylines"
+                    android:text="@{movie.overview}" />
 
+
+                <TextView
+                    android:id="@+id/videos_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/movie_text_padding"
+                    android:text="@string/movie_videos"
+                    android:textColor="@color/colorAccent"
+                    android:textSize="@dimen/movie_sub_title" />
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/movie_list_videos"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/md_keylines"
+                    app:layout_behavior="@string/appbar_scrolling_view_behavior"  />
+
+                <TextView
+                    android:id="@+id/reviews_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/movie_text_padding"
+                    android:text="@string/movie_reviews"
+                    android:textColor="@color/colorAccent"
+                    android:textSize="@dimen/movie_sub_title" />
+
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/movie_list_reviews"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:layout_behavior="@string/appbar_scrolling_view_behavior" />
             </LinearLayout>
-
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/movie_text_padding"
-                android:text="@string/movie_synopsis"
-                android:textSize="@dimen/movie_sub_title" />
-
-            <TextView
-                android:id="@+id/movie_synopsis"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/md_keylines" />
-        </LinearLayout>
+    </LinearLayout>
     </ScrollView>
-</LinearLayout>
+</layout>

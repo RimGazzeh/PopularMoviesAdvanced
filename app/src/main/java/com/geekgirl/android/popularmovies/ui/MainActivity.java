@@ -1,9 +1,10 @@
 package com.geekgirl.android.popularmovies.ui;
 
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.ViewModelProviders;
+import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.Loader;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -12,91 +13,119 @@ import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
+import android.widget.Toast;
 
 import com.geekgirl.android.popularmovies.R;
+import com.geekgirl.android.popularmovies.data.AppDatabase;
+import com.geekgirl.android.popularmovies.databinding.ActivityMainBinding;
 import com.geekgirl.android.popularmovies.model.Movie;
-import com.geekgirl.android.popularmovies.utils.Constants;
-import com.geekgirl.android.popularmovies.utils.MoviesAsyncTaskLoader;
-import com.geekgirl.android.popularmovies.utils.NetworkUtils;
+import com.geekgirl.android.popularmovies.service.AppExecutors;
+import com.geekgirl.android.popularmovies.service.NetworkUtils;
+import com.geekgirl.android.popularmovies.ui.adapters.MoviesAdapter;
+import com.geekgirl.android.popularmovies.utils.Logger;
 import com.geekgirl.android.popularmovies.utils.Prefs;
-import com.geekgirl.android.popularmovies.utils.UITools;
+import com.geekgirl.android.popularmovies.viewModel.AppViewModel;
 
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
+public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnMovieClickListener {
 
-public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<Movie>>, MoviesAdapter.OnMovieClickListener {
-
-
-    private static final int MOVIES_QUERY_LOADER = 25;
-
-    @BindView(R.id.activity_main_movies_rv)
-    RecyclerView mMoviesRecyclerView;
-    @BindView(R.id.activity_main_no_network_container)
-    RelativeLayout mNoInternetConnectionMsg;
-    @BindView(R.id.activity_main_status_container)
-    RelativeLayout mStatusContainer;
-    @BindView(R.id.activity_main_loader)
-    ProgressBar mLoadingIndicator;
-    @BindView(R.id.activity_main_error_message)
-    TextView mErrorMessage;
-    private ArrayList<Movie> mMovieList = new ArrayList<>();
-    private MoviesAdapter mMoviesAdapter;
+    private List<Movie> mMovieList = new ArrayList<>();
+    private List<Movie> mMovieFavList = new ArrayList<>();
+    private MoviesAdapter mMoviesAdapter = new MoviesAdapter();
     private MovieDetailFragment mMovieDetailFragment;
-    private URL mQueryUrl;
+    private AppViewModel mViewModel;
+    private ActivityMainBinding mBinding;
+    private AppDatabase mDb;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        ButterKnife.bind(this);
+        mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
         initView();
-        refreshUI();
+        initEvent();
+        initData();
     }
 
     private void initView() {
         RecyclerView.LayoutManager mLayoutManager = new GridLayoutManager(this, 2);
-        mMoviesRecyclerView.setLayoutManager(mLayoutManager);
-        mMoviesRecyclerView.addItemDecoration(new UITools.GridSpacingItemDecoration(2, UITools.dpToPx(10, this), true));
-        mMoviesRecyclerView.setItemAnimator(new DefaultItemAnimator());
-        mMoviesRecyclerView.setHasFixedSize(true);
-        mMoviesAdapter = new MoviesAdapter(this, mMovieList, this);
-        mMoviesRecyclerView.setAdapter(mMoviesAdapter);
+        mBinding.recyclerviewMovies.setLayoutManager(mLayoutManager);
+        mBinding.recyclerviewMovies.setItemAnimator(new DefaultItemAnimator());
+        mBinding.recyclerviewMovies.setHasFixedSize(true);
+        mBinding.recyclerviewMovies.setAdapter(mMoviesAdapter);
     }
 
-    public void refreshUI() {
+    private void initData() {
+        mDb = AppDatabase.getInstance(getApplicationContext());
+        mViewModel = ViewModelProviders.of(this).get(AppViewModel.class);
+        mViewModel.getFavoritesMovies().observe(this, (List<Movie> movieList) -> {
+            mMovieFavList = movieList;
+            getMoviesList();
+        });
+    }
+
+
+    private List<Movie> setFavoritesToList(int selectedOption, List<Movie> movieList) {
+        if (selectedOption == Prefs.FAVORITES_VALUE) {
+            mMovieFavList = movieList;
+            return movieList;
+        }
+        if (mMovieFavList == null || mMovieFavList.isEmpty()) {
+            return movieList;
+        }
+        List<Movie> resultList = new ArrayList<>();
+        for (Movie movie : movieList) {
+            if (mMovieFavList.contains(movie)) {
+                movie.setFavorite(true);
+            }
+            resultList.add(movie);
+        }
+        return resultList;
+    }
+
+    private void getMoviesList() {
+        setToolbarTitle();
+        mViewModel.getFavoritesMovies().removeObservers(this);
+        mViewModel.getMoviesByPopularity().removeObservers(this);
+        mViewModel.getMoviesByRating().removeObservers(this);
+        int selectedOption = Prefs.FAVORITES_VALUE;
         if (NetworkUtils.isNetworkConnected(this)) {
-            mNoInternetConnectionMsg.setVisibility(View.GONE);
-            mMoviesRecyclerView.setVisibility(View.VISIBLE);
-            makeMoviesQuery();
-        } else {
-            mLoadingIndicator.setVisibility(View.GONE);
-            mMoviesRecyclerView.setVisibility(View.GONE);
-            mNoInternetConnectionMsg.setVisibility(View.VISIBLE);
+            selectedOption = Prefs.getPref(Prefs.SORT_OPTION, this, Prefs.MOST_POPULAR_VALUE);
         }
+        LiveData<List<Movie>> listMutableLiveData;
+        switch (selectedOption) {
+
+            case Prefs.MOST_POPULAR_VALUE: {
+                listMutableLiveData = mViewModel.getMoviesByPopularity();
+            }
+            break;
+            case Prefs.TOP_RATED_VALUE: {
+                listMutableLiveData = mViewModel.getMoviesByRating();
+            }
+            break;
+            default: {
+                listMutableLiveData = mViewModel.getFavoritesMovies();
+            }
+            break;
+        }
+        int finalSelectedOption = selectedOption;
+        listMutableLiveData.observe(this, (List<Movie> movieList) -> {
+            mMovieList = setFavoritesToList(finalSelectedOption, movieList);
+            Logger.d("mMovieList size = " + mMovieList.size());
+            Logger.d("mMovieList " + mMovieList.toString());
+            mMoviesAdapter.setMoviesArrayList(mMovieList);
+            showErrorMessage(mMovieList.size() == 0);
+        });
+
     }
 
 
-    private void makeMoviesQuery() {
-        mQueryUrl = NetworkUtils.getUrlQuery(this);
-        Bundle queryBundle = new Bundle();
-        queryBundle.putString(Constants.QUERY_URL_EXTRA, mQueryUrl.toString());
-
-        LoaderManager loaderManager = getSupportLoaderManager();
-        Loader<List<Movie>> queryLoader = loaderManager.getLoader(MOVIES_QUERY_LOADER);
-        if (queryLoader == null) {
-            loaderManager.initLoader(MOVIES_QUERY_LOADER, queryBundle, this);
-        } else {
-            loaderManager.restartLoader(MOVIES_QUERY_LOADER, queryBundle, this);
-        }
+    public void initEvent() {
+        mMoviesAdapter.setOnMovieClickListener(this);
     }
+
 
     private boolean isUpEnabled() {
         return (getSupportActionBar().getDisplayOptions() & ActionBar.DISPLAY_HOME_AS_UP) != 0;
@@ -106,7 +135,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     public void onBackPressed() {
         if (isUpEnabled()) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-            getSupportActionBar().setTitle(getString(R.string.app_name));
+            setToolbarTitle();
             super.onBackPressed();
             invalidateOptionsMenu();
         } else {
@@ -114,41 +143,35 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         }
     }
 
-    @Override
-    public Loader<List<Movie>> onCreateLoader(int id, Bundle args) {
-        showLoadingIndicator();
-        return new MoviesAsyncTaskLoader(this, args);
-    }
+    private void setToolbarTitle() {
+        int selectedOption = Prefs.getPref(Prefs.SORT_OPTION, this, Prefs.MOST_POPULAR_VALUE);
 
-    @Override
-    public void onLoadFinished(Loader<List<Movie>> loader, List<Movie> data) {
-
-        mLoadingIndicator.setVisibility(View.GONE);
-
-        if (null == data) {
-            showErrorMessage();
-        } else {
-            mStatusContainer.setVisibility(View.GONE);
-            mMovieList.clear();
-            mMovieList.addAll(data);
-            mMoviesAdapter.notifyDataSetChanged();
+        switch (selectedOption) {
+            case Prefs.MOST_POPULAR_VALUE: {
+                getSupportActionBar().setTitle(getString(R.string.most_popular_option_menu) + " Movies");
+            }
+            break;
+            case Prefs.TOP_RATED_VALUE: {
+                getSupportActionBar().setTitle(getString(R.string.top_rated_option_menu) + " Movies");
+            }
+            break;
+            default: {
+                getSupportActionBar().setTitle(getString(R.string.favorites_option_menu) + " Movies");
+            }
+            break;
         }
     }
 
-    private void showErrorMessage() {
-        mStatusContainer.setVisibility(View.VISIBLE);
-        mErrorMessage.setVisibility(View.VISIBLE);
+    private void showErrorMessage(boolean show) {
+        if (show == true) {
+            mBinding.recyclerviewMovies.setVisibility(View.GONE);
+            mBinding.statusContainer.setVisibility(View.VISIBLE);
+        } else {
+            mBinding.statusContainer.setVisibility(View.GONE);
+            mBinding.recyclerviewMovies.setVisibility(View.VISIBLE);
+        }
     }
 
-    private void showLoadingIndicator() {
-        mStatusContainer.setVisibility(View.VISIBLE);
-        mLoadingIndicator.setVisibility(View.VISIBLE);
-    }
-
-    @Override
-    public void onLoaderReset(Loader<List<Movie>> loader) {
-
-    }
 
     private void goToMovieDetailFragment(Movie movie) {
         FragmentTransaction fragmentTransaction;
@@ -160,10 +183,33 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
 
     @Override
-    public void onMovieClick(int position) {
+    public void onMovieDetailClick(int position) {
         Movie movie = mMovieList.get(position);
         if (movie != null) {
             goToMovieDetailFragment(movie);
+        }
+    }
+
+    @Override
+    public void onMovieLikeClick(int position) {
+        Movie clickedMovie = mMovieList.get(position);
+        if (clickedMovie.isFavorite()) {
+            clickedMovie.setFavorite(false);
+            AppExecutors.getInstance().diskIO().execute(() -> {
+                mDb.movieDAO().deleteMovie(clickedMovie);
+            });
+
+        } else {
+            clickedMovie.setFavorite(true);
+            AppExecutors.getInstance().diskIO().execute(() -> {
+                mDb.movieDAO().insertMovie(clickedMovie);
+            });
+        }
+        int selectedOption = Prefs.getPref(Prefs.SORT_OPTION, this, Prefs.MOST_POPULAR_VALUE);
+        if (selectedOption == Prefs.FAVORITES_VALUE) {
+            mMoviesAdapter.notifyDataSetChanged();
+        } else {
+            mMoviesAdapter.notifyItemChanged(position);
         }
     }
 
@@ -187,6 +233,28 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         return super.onPrepareOptionsMenu(menu);
     }
 
+    private void refreshView(int selectedOption) {
+        if (NetworkUtils.isNetworkConnected(this)) {
+            switch (selectedOption) {
+                case Prefs.MOST_POPULAR_VALUE: {
+                    Prefs.setPref(Prefs.SORT_OPTION, Prefs.MOST_POPULAR_VALUE, this);
+                }
+                break;
+                case Prefs.TOP_RATED_VALUE: {
+                    Prefs.setPref(Prefs.SORT_OPTION, Prefs.TOP_RATED_VALUE, this);
+                }
+                break;
+                case Prefs.FAVORITES_VALUE: {
+                    Prefs.setPref(Prefs.SORT_OPTION, Prefs.FAVORITES_VALUE, this);
+                }
+                break;
+            }
+        }else {
+            Toast.makeText(this, getString(R.string.no_network_connection), Toast.LENGTH_SHORT).show();
+        }
+        getMoviesList();
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -194,17 +262,21 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 onBackPressed();
                 break;
             case R.id.menu_refresh: {
-                refreshUI();
+                getMoviesList();
             }
             break;
             case R.id.top_rated_option: {
-                Prefs.setPref(Prefs.SORT_OPTION, Prefs.TOP_RATED_VALUE, this);
-                makeMoviesQuery();
+                refreshView(Prefs.TOP_RATED_VALUE);
+
             }
             break;
             case R.id.most_popular_option: {
-                Prefs.setPref(Prefs.SORT_OPTION, Prefs.MOST_POPULAR_VALUE, this);
-                makeMoviesQuery();
+                refreshView(Prefs.MOST_POPULAR_VALUE);
+            }
+            break;
+
+            case R.id.favorites_option: {
+                refreshView(Prefs.FAVORITES_VALUE);
             }
             break;
         }

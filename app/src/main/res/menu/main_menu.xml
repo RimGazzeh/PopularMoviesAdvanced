@@ -23,6 +23,11 @@
                 android:id="@+id/most_popular_option"
                 android:title="@string/most_popular_option_menu"
                 />
+
+            <item
+                android:id="@+id/favorites_option"
+                android:title="@string/favorites_option_menu"
+                />
         </menu>
 
     </item>
