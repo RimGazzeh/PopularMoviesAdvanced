@@ -8,39 +8,54 @@ import android.support.v7.widget.RecyclerView;
  */
 abstract public class GridEndlessRecyclerViewScrollListener extends RecyclerView.OnScrollListener{
 
-    private GridLayoutManager mGridLayoutManager;
-    private int mPreviousTotalItemCount = 0;
-    private boolean mLoading = true;
-    private int mStartingPageIndex = 0;
-    private int currentPage = 0;
+    private final GridLayoutManager mLayoutManager;
+    private int previousTotalItemCount = 10;
+    private int page = 2;
+    private boolean loading = true;
 
-    // The minimum amount of items to have below your current scroll position
-    // before loading more.
-    private int mVisibleThreshold = 5;
-
-
-    private GridEndlessRecyclerViewScrollListener(GridLayoutManager gridLayoutManager){
-        mGridLayoutManager= gridLayoutManager;
+    protected GridEndlessRecyclerViewScrollListener(GridLayoutManager layoutManager) {
+        mLayoutManager = layoutManager;
     }
 
     @Override
     public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-        int lastVisibleItemPosition = mGridLayoutManager.findLastVisibleItemPosition();
-        int totalItemCount = mGridLayoutManager.getItemCount();
-        if (mLoading && (totalItemCount > mPreviousTotalItemCount)) {
-            mLoading = false;
-            mPreviousTotalItemCount = totalItemCount;
 
-            if (!mLoading && (lastVisibleItemPosition + mVisibleThreshold) > totalItemCount
-                    && recyclerView.getAdapter().getItemCount() > mVisibleThreshold) {// This condition will useful when recyclerview has less than mVisibleThreshold items
-                currentPage++;
-                onLoadMore(currentPage, totalItemCount);
-                mLoading = true;
-            }
+        int totalItemCount = mLayoutManager.getItemCount();
+        int lastVisibleItemPosition = mLayoutManager.findLastVisibleItemPosition();
+
+
+        if (loading && (totalItemCount > previousTotalItemCount)) {
+            loading = false;
+            previousTotalItemCount = totalItemCount;
         }
-        super.onScrolled(recyclerView, dx, dy);
+
+        int visibleThreshold = 2;
+        if (!loading && (lastVisibleItemPosition + visibleThreshold) > totalItemCount) {
+            onLoadMore(++page);
+            loading = true;
+        }
     }
 
-    public abstract void onLoadMore(int page, int totalItemsCount);
+    public void resetState() {
+        this.page = 1;
+        this.previousTotalItemCount = 0;
+        this.loading = true;
+    }
+
+    public void setState(int page, int count) {
+        this.page = page;
+        this.previousTotalItemCount = count;
+        this.loading = false;
+    }
+
+    public int getCount() {
+        return previousTotalItemCount;
+    }
+
+    public int getPage() {
+        return page;
+    }
+
+    public abstract void onLoadMore(int page);
 
 }

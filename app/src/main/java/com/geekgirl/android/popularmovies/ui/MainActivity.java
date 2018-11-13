@@ -9,7 +9,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import android.util.DisplayMetrics;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -22,12 +22,15 @@ import com.geekgirl.android.popularmovies.model.Movie;
 import com.geekgirl.android.popularmovies.service.AppExecutors;
 import com.geekgirl.android.popularmovies.service.NetworkUtils;
 import com.geekgirl.android.popularmovies.ui.adapters.MoviesAdapter;
+import com.geekgirl.android.popularmovies.ui.widget.GridEndlessRecyclerViewScrollListener;
 import com.geekgirl.android.popularmovies.utils.Logger;
 import com.geekgirl.android.popularmovies.utils.Prefs;
 import com.geekgirl.android.popularmovies.viewModel.AppViewModel;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static android.content.res.Configuration.ORIENTATION_PORTRAIT;
 
 public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnMovieClickListener {
 
@@ -38,23 +41,54 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
     private AppViewModel mViewModel;
     private ActivityMainBinding mBinding;
     private AppDatabase mDb;
+    private GridEndlessRecyclerViewScrollListener mViewScrollListener;
+    private int mFinalSelectedOption;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+        initData();
         initView();
         initEvent();
-        initData();
+    }
+
+    private int getColumnsNumber() {
+
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        int width = displayMetrics.widthPixels;
+
+        if (getResources().getConfiguration().orientation == ORIENTATION_PORTRAIT) {
+            if (width > 1000) {
+                return 3;
+            } else {
+                return 2;
+            }
+        } else {
+            if (width > 1700) {
+                return 5;
+            } else if (width > 1200) {
+                return 4;
+            } else {
+                return 3;
+            }
+        }
     }
 
     private void initView() {
-        RecyclerView.LayoutManager mLayoutManager = new GridLayoutManager(this, 2);
+        GridLayoutManager mLayoutManager = new GridLayoutManager(this, getColumnsNumber());
         mBinding.recyclerviewMovies.setLayoutManager(mLayoutManager);
         mBinding.recyclerviewMovies.setItemAnimator(new DefaultItemAnimator());
         mBinding.recyclerviewMovies.setHasFixedSize(true);
         mBinding.recyclerviewMovies.setAdapter(mMoviesAdapter);
+        mViewScrollListener = new GridEndlessRecyclerViewScrollListener(mLayoutManager) {
+            @Override
+            public void onLoadMore(int page) {
+                mViewModel.refreshListMovies(mFinalSelectedOption, page);
+            }
+        };
     }
 
     private void initData() {
@@ -85,6 +119,15 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
         return resultList;
     }
 
+    public void initScrollView(boolean isActive){
+        if(isActive){
+            mViewScrollListener.resetState();
+            mBinding.recyclerviewMovies.addOnScrollListener(mViewScrollListener);
+        }else {
+            mBinding.recyclerviewMovies.clearOnScrollListeners();
+        }
+    }
+
     private void getMoviesList() {
         setToolbarTitle();
         mViewModel.getFavoritesMovies().removeObservers(this);
@@ -99,20 +142,24 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
 
             case Prefs.MOST_POPULAR_VALUE: {
                 listMutableLiveData = mViewModel.getMoviesByPopularity();
+                initScrollView(true);
+
             }
             break;
             case Prefs.TOP_RATED_VALUE: {
                 listMutableLiveData = mViewModel.getMoviesByRating();
+                initScrollView(true);
             }
             break;
             default: {
                 listMutableLiveData = mViewModel.getFavoritesMovies();
+                initScrollView(false);
             }
             break;
         }
-        int finalSelectedOption = selectedOption;
+        mFinalSelectedOption = selectedOption;
         listMutableLiveData.observe(this, (List<Movie> movieList) -> {
-            mMovieList = setFavoritesToList(finalSelectedOption, movieList);
+            mMovieList = setFavoritesToList(mFinalSelectedOption, movieList);
             Logger.d("mMovieList size = " + mMovieList.size());
             Logger.d("mMovieList " + mMovieList.toString());
             mMoviesAdapter.setMoviesArrayList(mMovieList);

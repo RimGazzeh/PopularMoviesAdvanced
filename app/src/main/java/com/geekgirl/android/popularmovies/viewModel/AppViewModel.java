@@ -14,6 +14,7 @@ import com.geekgirl.android.popularmovies.model.Video;
 import com.geekgirl.android.popularmovies.service.ServiceInitiator;
 import com.geekgirl.android.popularmovies.service.Webservice;
 import com.geekgirl.android.popularmovies.utils.Logger;
+import com.geekgirl.android.popularmovies.utils.Prefs;
 
 import java.util.List;
 
@@ -87,6 +88,20 @@ public class AppViewModel extends AndroidViewModel {
 
     private void loadFavoritesMovies() {
         movieFavorites = appDatabase.movieDAO().getAllMovies();
+    }
+
+    public void refreshListMovies(int type, int page){
+        switch (type) {
+
+            case Prefs.MOST_POPULAR_VALUE: {
+                loadMoviesByPopularity(page);
+            }
+            break;
+            case Prefs.TOP_RATED_VALUE: {
+                loadMoviesByRating(page);
+            }
+            break;
+        }
     }
 
     private void loadMoviesByPopularity(int page) {
