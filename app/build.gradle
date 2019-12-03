@@ -1,11 +1,13 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion project.ext.compileSdkVersion
     defaultConfig {
         applicationId "com.geekgirl.android.popularmovies"
-        minSdkVersion 21
-        targetSdkVersion 28
+        minSdkVersion project.ext.minSdkVersion
+        targetSdkVersion project.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -59,7 +61,16 @@ dependencies {
     implementation "com.squareup.retrofit2:retrofit:$project.ext.retrofit2Version"
     implementation "com.squareup.retrofit2:converter-gson:$project.ext.retrofit2converterVersion"
 
+    //RXJava2
+    implementation "io.reactivex.rxjava2:rxjava:$project.ext.RxJava2Version"
+    implementation "io.reactivex.rxjava2:rxandroid:$project.ext.rxandroidVersion"
+    implementation "androidx.core:core-ktx:+"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.1.0"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
 
+}
+repositories {
+    mavenCentral()
 }
 

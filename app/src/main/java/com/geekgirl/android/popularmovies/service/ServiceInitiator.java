@@ -44,7 +44,7 @@ public class ServiceInitiator {
 
     private static Retrofit retrofit = builder.build();
 
-    public static Webservice createService() {
-        return retrofit.create(Webservice.class);
+    public static ApiService createService() {
+        return retrofit.create(ApiService.class);
     }
 }
