@@ -1,14 +1,14 @@
 package com.geekgirl.android.popularmovies.ui;
 
-import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.ViewModelProviders;
-import android.databinding.DataBindingUtil;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.ViewModelProviders;
+import androidx.databinding.DataBindingUtil;
 import android.os.Bundle;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.DefaultItemAnimator;
-import android.support.v7.widget.GridLayoutManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.GridLayoutManager;
 import android.util.DisplayMetrics;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -96,6 +96,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
         mViewModel = ViewModelProviders.of(this).get(AppViewModel.class);
         mViewModel.getFavoritesMovies().observe(this, (List<Movie> movieList) -> {
             mMovieFavList = movieList;
+            Logger.d(mMovieFavList.toString());
             getMoviesList();
         });
     }

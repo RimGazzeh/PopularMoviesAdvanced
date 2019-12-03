@@ -1,10 +1,10 @@
 package com.geekgirl.android.popularmovies.viewModel;
 
 import android.app.Application;
-import android.arch.lifecycle.AndroidViewModel;
-import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.MutableLiveData;
-import android.support.annotation.NonNull;
+import androidx.lifecycle.AndroidViewModel;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+import androidx.annotation.NonNull;
 
 import com.geekgirl.android.popularmovies.data.AppDatabase;
 import com.geekgirl.android.popularmovies.model.ApiResponse;
@@ -111,6 +111,7 @@ public class AppViewModel extends AndroidViewModel {
             public void onResponse(Call<ApiResponse<Movie>> call, Response<ApiResponse<Movie>> response) {
                 if (response.isSuccessful()) {
                     List<Movie> resultsMovies = response.body().getListData();
+                    Logger.d("success" + resultsMovies.size());
                     List<Movie> movieList = popularMovies.getValue();
                     if (movieList == null || movieList.isEmpty()) {
                         popularMovies.setValue(resultsMovies);
@@ -123,6 +124,7 @@ public class AppViewModel extends AndroidViewModel {
 
             @Override
             public void onFailure(Call<ApiResponse<Movie>> call, Throwable t) {
+                Logger.d(t.getMessage() + "cause= " + t.getCause());
                 popularMovies = null;
             }
         });

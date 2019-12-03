@@ -50,7 +50,6 @@ public class PicassoImageView extends RelativeLayout {
 
     public void setUrl(String url){
         mUrl = url;
-        mUrl.replace("http", "https");
         Picasso.with(mContext).load(mUrl).noFade()
                 .into(mImageView);
         invalidate();

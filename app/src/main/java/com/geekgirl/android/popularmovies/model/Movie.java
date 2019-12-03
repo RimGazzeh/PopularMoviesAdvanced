@@ -1,11 +1,11 @@
 
 package com.geekgirl.android.popularmovies.model;
 
-import android.arch.persistence.room.Entity;
-import android.arch.persistence.room.PrimaryKey;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.google.gson.annotations.SerializedName;
 
@@ -80,7 +80,7 @@ public class Movie implements IMovie, Parcelable {
 
     @Override
     public String getPosterCompletePath() {
-        return "http://image.tmdb.org/t/p/w500" + posterPath;
+        return "https://image.tmdb.org/t/p/w500" + posterPath;
     }
     @Override
     public String getPosterPath() {
